@@ -1,0 +1,28 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Alex\quantum-crypto-research-\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Alex\quantum-crypto-research-
+collecting ... collected 20 items
+
+tests/test_benchmark_utils.py::test_measure_ms_runs_callable PASSED      [  5%]
+tests/test_benchmark_utils.py::test_measure_ms_rejects_zero_repetitions PASSED [ 10%]
+tests/test_grover_circuit.py::test_optimal_iterations_for_four_qubits PASSED [ 15%]
+tests/test_grover_circuit.py::test_grover_probability_matches_known_four_qubit_case PASSED [ 20%]
+tests/test_grover_circuit.py::test_target_validation PASSED              [ 25%]
+tests/test_grover_circuit.py::test_circuit_has_measurements_when_qiskit_is_installed PASSED [ 30%]
+tests/test_grover_circuit.py::test_run_sweep_with_aer_returns_expected_rows PASSED [ 35%]
+tests/test_grover_circuit.py::test_run_sweep_is_reproducible_with_same_seed PASSED [ 40%]
+tests/test_grover_model.py::test_grover_scaling PASSED                   [ 45%]
+tests/test_grover_model.py::test_grover_is_quadratic_speedup PASSED      [ 50%]
+tests/test_signature_overhead.py::test_total_signature_bytes_multiplies_size_by_count PASSED [ 55%]
+tests/test_signature_overhead.py::test_total_signature_bytes_rejects_negative_values PASSED [ 60%]
+tests/test_signature_overhead.py::test_overhead_ratio PASSED             [ 65%]
+tests/test_signature_overhead.py::test_run_model_computes_totals_and_relative_overhead PASSED [ 70%]
+tests/test_signature_overhead.py::test_run_model_requires_baseline_scheme PASSED [ 75%]
+tests/test_signature_overhead.py::test_get_scheme_sizes_falls_back_to_reference PASSED [ 80%]
+tests/test_signature_overhead.py::test_get_scheme_sizes_prefers_benchmark_csv PASSED [ 85%]
+tests/test_signature_overhead.py::test_parse_signature_counts PASSED     [ 90%]
+tests/test_signature_overhead.py::test_save_csv_roundtrip PASSED         [ 95%]
+tests/test_signature_overhead.py::test_save_csv_rejects_empty_rows PASSED [100%]
+
+============================= 20 passed in 2.72s ==============================
