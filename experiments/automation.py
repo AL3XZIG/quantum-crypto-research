@@ -186,8 +186,6 @@ def run_tests(stamp: str):
 def write_report(stamp: str, runs: int, repetitions: int, stats_path: Path,
                  grover_status: str, test_code: int, test_log: Path) -> Path:
     comparison_path = TABLES / "comparison_summary.csv"
-    with stats_path.open(newline="", encoding="utf-8") as handle:
-        stats = list(csv.DictReader(handle))
     with comparison_path.open(newline="", encoding="utf-8") as handle:
         comparison = list(csv.DictReader(handle))
     lines = [
@@ -227,7 +225,6 @@ def write_report(stamp: str, runs: int, repetitions: int, stats_path: Path,
         f"- Statistics: {stats_path.relative_to(ROOT)}",
         "- Consolidated table: results/tables/comparison_summary.csv",
         "- Main signature chart: results/figures/signature_comparison.png",
-        "- Statistics: results/tables/signature_benchmark_statistics.csv",
         "- Logs and environment: results/logs/",
         "", "## Limitations", "",
         "Timing depends on hardware, operating system, library builds, and system load. "
