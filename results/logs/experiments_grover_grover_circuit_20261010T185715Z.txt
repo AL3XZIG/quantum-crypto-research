@@ -1,0 +1,6 @@
+Qubits: 4; search space: 16; target: 1111
+Theoretical optimal iterations: 3
+Best measured result: 3 iterations, success=0.958, theory=0.961
+CSV: C:\Users\Alex\quantum-crypto-research-\data\grover_circuit_results.csv
+Plot: C:\Users\Alex\quantum-crypto-research-\results\figures\grover_success_probability.png
+Note: this is a small toy search, not a break of a real cryptographic system.

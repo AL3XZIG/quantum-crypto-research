@@ -1,0 +1,12 @@
+Timestamp UTC: 2026-10-10T18:57:15.725189+00:00
+Python: 3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]
+Platform: Windows-10-10.0.19045-SP0
+
+Package versions:
+- cryptography: 50.0.2
+- liboqs-python: 0.16.0.1
+- matplotlib: 3.11.2
+- pandas: 3.0.6
+- qiskit: 2.5.2
+- qiskit-aer: 0.17.2
+- pytest: 9.1.1
