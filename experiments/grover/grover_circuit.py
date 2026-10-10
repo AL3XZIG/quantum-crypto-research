@@ -114,13 +114,29 @@ def run_sweep(
     max_iterations = min(optimum + 2, 2 * optimum + 1)
     rows: list[dict] = []
 
-    for iterations in range(max_iterations + 1):
-        circuit = build_grover_circuit(qubits, target, iterations)
-        compiled = transpile(circuit, simulator, optimization_level=0)
-        result = simulator.run(
-            compiled, shots=shots, seed_simulator=seed + iterations
-        ).result()
-        counts = result.get_counts()
+    # Build and transpile every circuit up front, then run them as a single
+    # batched job. Aer executes a list of circuits in one job submission,
+    # which removes the per-run overhead of repeatedly starting and tearing
+    # down simulator state (and lets the backend reuse its compiled shared
+    # libraries). Results are identical to running the circuits one by one,
+    # because each circuit keeps its own deterministic seed.
+    compiled_circuits = [
+        transpile(
+            build_grover_circuit(qubits, target, iterations),
+            simulator,
+            optimization_level=0,
+        )
+        for iterations in range(max_iterations + 1)
+    ]
+    job = simulator.run(
+        compiled_circuits,
+        shots=shots,
+        seed_simulator=[seed + i for i in range(len(compiled_circuits))],
+    )
+    results = job.result()
+
+    for iterations, iteration_result in zip(range(max_iterations + 1), results):
+        counts = iteration_result.get_counts()
         target_count = int(counts.get(target, 0))
         rows.append({
             "qubits": qubits,
