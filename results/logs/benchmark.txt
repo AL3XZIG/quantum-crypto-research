@@ -1,0 +1,4 @@
+liboqs-python faulthandler is disabled
+Saved results to C:\Users\Alex\quantum-crypto-research-\data\signature_benchmark.csv
+BenchmarkResult(algorithm='ECDSA', parameter='P-256 / SHA-256', keygen_ms=0.023482999531552196, sign_ms=0.0351709991809912, verify_ms=0.07976499939104542, public_key_bytes=91, private_key_bytes=138, signature_bytes=70)
+BenchmarkResult(algorithm='ML-DSA-65', parameter='ML-DSA-65', keygen_ms=0.8301440009381622, sign_ms=3.628479999024421, verify_ms=0.9524419996887445, public_key_bytes=1952, private_key_bytes=4032, signature_bytes=3309)
