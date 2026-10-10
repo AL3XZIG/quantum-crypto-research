@@ -251,3 +251,10 @@ The latest captured Windows run comparing ECDSA P-256 / SHA-256 with ML-DSA-65, 
 
 These are preliminary measurements from one captured run; see the report for limitations.
 
+## Additional captured results
+
+- Grover circuit simulation report: [`results/grover_simulation.md`](results/grover_simulation.md)
+- Grover raw data: [`data/grover_circuit_results.csv`](data/grover_circuit_results.csv)
+- Grover probability chart: [`results/figures/grover_success_probability.svg`](results/figures/grover_success_probability.svg)
+
+The latest batch-run signature benchmark and its updated charts are also available above. The signature CSV reflects the most recent uploaded run, so its values differ from earlier captures.
