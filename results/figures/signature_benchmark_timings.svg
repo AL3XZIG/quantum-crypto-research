@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="590" viewBox="0 0 1000 590">
+<rect width="1000" height="590" fill="#ffffff"/>
+<text x="500" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" font-weight="bold" fill="#172033">Digital signature operation timings</text>
+<text x="500" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#4b5563">One captured run · logarithmic scale · milliseconds</text>
+<rect x="260" y="85" width="16" height="12" fill="#3977c3"/><text x="282" y="96" font-family="Arial,sans-serif" font-size="13" fill="#172033">ECDSA P-256 / SHA-256</text>
+<rect x="475" y="85" width="16" height="12" fill="#d97732"/><text x="497" y="96" font-family="Arial,sans-serif" font-size="13" fill="#172033">ML-DSA-65</text>
+<line x1="260" y1="118" x2="260" y2="500" stroke="#d1d5db" stroke-dasharray="4 4"/><text x="260" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#4b5563">0.01</text>
+<line x1="473.3" y1="118" x2="473.3" y2="500" stroke="#d1d5db" stroke-dasharray="4 4"/><text x="473.3" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#4b5563">0.1</text>
+<line x1="686.7" y1="118" x2="686.7" y2="500" stroke="#d1d5db" stroke-dasharray="4 4"/><text x="686.7" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#4b5563">1</text>
+<line x1="900" y1="118" x2="900" y2="500" stroke="#d1d5db" stroke-dasharray="4 4"/><text x="900" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#4b5563">10</text>
+<text x="580" y="552" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#172033">Time (ms, log scale)</text>
+<text x="32" y="167" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#172033">Key generation</text>
+<rect x="260" y="145" width="79.5" height="25" rx="3" fill="#3977c3"/><text x="347" y="162" font-family="Arial,sans-serif" font-size="12" fill="#172033">0.0235 ms</text>
+<rect x="260" y="181" width="409.3" height="25" rx="3" fill="#d97732"/><text x="678" y="198" font-family="Arial,sans-serif" font-size="12" fill="#172033">0.8301 ms</text>
+<text x="32" y="292" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#172033">Signing</text>
+<rect x="260" y="270" width="116.4" height="25" rx="3" fill="#3977c3"/><text x="385" y="287" font-family="Arial,sans-serif" font-size="12" fill="#172033">0.0352 ms</text>
+<rect x="260" y="306" width="548.2" height="25" rx="3" fill="#d97732"/><text x="816" y="323" font-family="Arial,sans-serif" font-size="12" fill="#172033">3.6285 ms</text>
+<text x="32" y="417" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#172033">Verification</text>
+<rect x="260" y="395" width="192.7" height="25" rx="3" fill="#3977c3"/><text x="461" y="412" font-family="Arial,sans-serif" font-size="12" fill="#172033">0.0798 ms</text>
+<rect x="260" y="431" width="420.3" height="25" rx="3" fill="#d97732"/><text x="688" y="448" font-family="Arial,sans-serif" font-size="12" fill="#172033">0.9524 ms</text>
+<text x="32" y="575" font-family="Arial,sans-serif" font-size="11" fill="#6b7280">Preliminary result from one captured benchmark run; timing is implementation- and environment-dependent.</text>
+</svg>
