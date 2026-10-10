@@ -160,6 +160,8 @@ python -m pip install -r requirements-quantum.txt
 python -m experiments.grover.grover_circuit --qubits 4 --shots 2048
 ```
 
+В Windows после установки зависимостей можно запустить `run_grover_simulation.bat` двойным щелчком. Скрипт использует виртуальное окружение `.venv` и сохраняет CSV с результатами и график.
+
 Параметры: `--qubits` (от 2 до 12), `--target` (например, `1010` для четырёх кубитов), `--shots` (число измерений на каждое число итераций) и `--seed` (для воспроизводимости). По умолчанию цель — `1111`.
 
 ### Только бенчмарк подписей
@@ -167,6 +169,8 @@ python -m experiments.grover.grover_circuit --qubits 4 --shots 2048
 ```powershell
 python -m experiments.signatures.run_benchmark --repetitions 100
 ```
+
+В Windows можно запустить `run_signature_benchmark.bat` двойным щелчком. Он запускает бенчмарк ECDSA/ML-DSA, а затем строит графики и сводную таблицу. Перед этим установите зависимости из `requirements.txt`.
 
 ### Только анализ результатов
 
