@@ -1,0 +1,3 @@
+algorithm,parameter,keygen_ms,sign_ms,verify_ms,public_key_bytes,private_key_bytes,signature_bytes,run_id,timestamp_utc,ecdsa_repetitions,mldsa_repetitions
+ECDSA,P-256 / SHA-256,0.023940004757605493,0.03582000208552927,0.08545999589841813,91,138,72,1,2026-10-10T18:49:48.572626+00:00,10,30
+ML-DSA-65,ML-DSA-65,0.8348933324062576,3.9934633328812197,0.9581633348716423,1952,4032,3309,1,2026-10-10T18:49:48.572626+00:00,10,30

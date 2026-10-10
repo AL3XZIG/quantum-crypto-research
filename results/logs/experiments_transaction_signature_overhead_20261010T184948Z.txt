@@ -1,0 +1,13 @@
+Transaction overhead model
+Signature sizes source: benchmark
+ECDSA P-256: 72 bytes; ML-DSA-65: 3309 bytes (x46.0 larger)
+    1 signatures: ECDSA         72 B, ML-DSA       3309 B, overhead x46.0
+    5 signatures: ECDSA        360 B, ML-DSA      16545 B, overhead x46.0
+   10 signatures: ECDSA        720 B, ML-DSA      33090 B, overhead x46.0
+   50 signatures: ECDSA       3600 B, ML-DSA     165450 B, overhead x46.0
+  100 signatures: ECDSA       7200 B, ML-DSA     330900 B, overhead x46.0
+  250 signatures: ECDSA      18000 B, ML-DSA     827250 B, overhead x46.0
+  500 signatures: ECDSA      36000 B, ML-DSA    1654500 B, overhead x46.0
+ 1000 signatures: ECDSA      72000 B, ML-DSA    3309000 B, overhead x46.0
+CSV: C:\Users\Alex\quantum-crypto-research-\data\signature_overhead_results.csv
+Note: this models data volume only, not blockchain or network measurements.
