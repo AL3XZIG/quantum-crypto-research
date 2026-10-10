@@ -38,13 +38,17 @@ def measure_ms(
     for _ in range(warmup):
         function()
 
-    samples = []
+    # Accumulate the total elapsed time instead of materialising a list of
+    # per-sample timings. This keeps memory usage O(1) and avoids the cost of
+    # building and traversing an intermediate list for large repetition
+    # counts, while producing exactly the same arithmetic mean.
+    total_ms = 0.0
     for _ in range(repetitions):
         start = perf_counter()
         function()
-        samples.append((perf_counter() - start) * 1000)
+        total_ms += (perf_counter() - start) * 1000
 
-    return mean(samples)
+    return total_ms / repetitions
 
 
 def measure_ms_with_stats(
