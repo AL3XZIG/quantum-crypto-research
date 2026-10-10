@@ -185,8 +185,11 @@ def run_tests(stamp: str):
 
 def write_report(stamp: str, runs: int, repetitions: int, stats_path: Path,
                  grover_status: str, test_code: int, test_log: Path) -> Path:
+    comparison_path = TABLES / "comparison_summary.csv"
     with stats_path.open(newline="", encoding="utf-8") as handle:
         stats = list(csv.DictReader(handle))
+    with comparison_path.open(newline="", encoding="utf-8") as handle:
+        comparison = list(csv.DictReader(handle))
     lines = [
         "# Automated experiment report", "",
         f"- Timestamp UTC: {stamp}",
@@ -195,18 +198,23 @@ def write_report(stamp: str, runs: int, repetitions: int, stats_path: Path,
         f"- ML-DSA-65 repetitions per operation and series: {max(30, repetitions // 2)}",
         "- Timings are means returned by the existing benchmark functions.",
         "- Raw files preserve each independent series result, not each individual operation timing.",
-        "", "## Signature timing statistics", "",
-        "| Algorithm | Metric | Mean (ms) | Sample SD | 95% CI |",
-        "|---|---|---:|---:|---:|",
+        "", "## Consolidated signature comparison", "",
+        "Times are shown as mean ± sample SD; 95% confidence intervals are included in parentheses.",
+        "",
+        "| Algorithm | Key generation (ms) | Signing (ms) | Verification (ms) | Public key (B) | Private key (B) | Signature (B) |",
+        "|---|---:|---:|---:|---:|---:|---:|",
     ]
-    for row in stats:
-        if row["metric"] not in ("keygen_ms", "sign_ms", "verify_ms"):
-            continue
-        lines.append(
-            f"| {row['algorithm']} | {row['metric']} | {float(row['mean']):.6f} | "
-            f"{float(row['sample_sd']):.6f} | "
-            f"[{float(row['ci95_low']):.6f}, {float(row['ci95_high']):.6f}] |"
-        )
+    for row in comparison:
+        cells = [row["algorithm"]]
+        for metric in ("keygen_ms", "sign_ms", "verify_ms"):
+            mean = float(row[f"{metric}_mean"])
+            sd = float(row[f"{metric}_sd"])
+            low = float(row[f"{metric}_ci95_low"])
+            high = float(row[f"{metric}_ci95_high"])
+            cells.append(f"{mean:.6f} ± {sd:.6f} ([{low:.6f}, {high:.6f}])")
+        cells.extend(str(int(row[name])) for name in
+                     ("public_key_bytes", "private_key_bytes", "signature_bytes"))
+        lines.append("| " + " | ".join(cells) + " |")
     lines += [
         "", "## Other experiments and checks", "",
         f"- Grover circuit simulation: {grover_status}",
@@ -217,7 +225,9 @@ def write_report(stamp: str, runs: int, repetitions: int, stats_path: Path,
         "- Raw series: results/raw/",
         "- Aggregate benchmark input: data/signature_benchmark.csv",
         f"- Statistics: {stats_path.relative_to(ROOT)}",
-        "- Figures and summary table: results/figures/ and results/tables/",
+        "- Consolidated table: results/tables/comparison_summary.csv",
+        "- Main signature chart: results/figures/signature_comparison.png",
+        "- Statistics: results/tables/signature_benchmark_statistics.csv",
         "- Logs and environment: results/logs/",
         "", "## Limitations", "",
         "Timing depends on hardware, operating system, library builds, and system load. "
