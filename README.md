@@ -239,3 +239,15 @@ python -m pytest tests
 ## Текущее состояние
 
 Это **прототип исследовательского стенда**, а не готовый набор опубликованных результатов. Следующий этап — запустить его на реальной машине, получить CSV, проверить корректность измерений, добавить статистический анализ и только после этого переносить цифры в статью.
+
+## Captured benchmark results
+
+The latest captured Windows run comparing ECDSA P-256 / SHA-256 with ML-DSA-65, the corresponding timing/size charts, environment details, and the pytest log are documented in [`results/benchmark.md`](results/benchmark.md).
+
+- Raw benchmark data: [`data/signature_benchmark.csv`](data/signature_benchmark.csv)
+- Timing chart: [`results/figures/signature_benchmark_timings.svg`](results/figures/signature_benchmark_timings.svg)
+- Key/signature size chart: [`results/figures/signature_benchmark_sizes.svg`](results/figures/signature_benchmark_sizes.svg)
+- Captured logs: [`results/logs/`](results/logs/)
+
+These are preliminary measurements from one captured run; see the report for limitations.
+
