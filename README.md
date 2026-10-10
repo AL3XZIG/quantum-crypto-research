@@ -137,13 +137,14 @@ python -c "import oqs; print('ML-DSA-65' in oqs.get_enabled_sig_mechanisms()); p
 python -m experiments.run_all
 ```
 
-После завершения должны появиться:
+После завершения состав файлов зависит от выбранной команды. Для актуального автоматизированного запуска сравнения цифровых подписей используются:
 
-- `data/grover_results.csv`;
-- `data/signature_benchmark.csv`;
-- `results/figures/signature_times.png`;
-- `results/figures/signature_sizes.png`;
-- `results/tables/signature_benchmark_summary.csv`.
+- `data/signature_benchmark.csv` — агрегированные результаты бенчмарка;
+- `results/tables/signature_benchmark_statistics.csv` — статистика независимых серий;
+- `results/tables/comparison_summary.csv` — единая сравнительная таблица с временами, SD, 95% доверительными интервалами и размерами;
+- `results/figures/signature_comparison.png` — объединённый график времени операций;
+- `results/report.md` — отчёт автоматизации;
+- `results/raw/` и `results/logs/` — сохранённые серии и журналы запуска.
 
 ## Запуск отдельных частей
 
@@ -177,6 +178,8 @@ python -m experiments.signatures.run_benchmark --repetitions 100
 ```powershell
 python -m experiments.signatures.analyze_results
 ```
+
+Команда читает уже существующий `data/signature_benchmark.csv` и создаёт/обновляет `results/tables/comparison_summary.csv` и `results/figures/signature_comparison.png`. Она не запускает новые измерения. Если нужна полная серия экспериментов, используй автоматизацию проекта; анализатор сам по себе не обновляет `results/report.md`.
 
 ### Только модель накладных расходов подписей
 
@@ -242,19 +245,22 @@ python -m pytest tests
 
 ## Captured benchmark results
 
-The latest captured Windows run comparing ECDSA P-256 / SHA-256 with ML-DSA-65, the corresponding timing/size charts, environment details, and the pytest log are documented in [`results/benchmark.md`](results/benchmark.md).
+The consolidated comparison of ECDSA P-256 / SHA-256 and ML-DSA-65 is available in the report and in the table/chart below. The reported statistics use 10 independent benchmark series per algorithm; the underlying benchmark functions return per-series means, so the confidence intervals describe variation between series rather than individual operations within a series.
 
-- Raw benchmark data: [`data/signature_benchmark.csv`](data/signature_benchmark.csv)
-- Timing chart: [`results/figures/signature_benchmark_timings.svg`](results/figures/signature_benchmark_timings.svg)
-- Key/signature size chart: [`results/figures/signature_benchmark_sizes.svg`](results/figures/signature_benchmark_sizes.svg)
-- Captured logs: [`results/logs/`](results/logs/)
+- [Automated experiment report](results/report.md)
+- [Consolidated comparison table (CSV)](results/tables/comparison_summary.csv)
+- [Consolidated comparison chart (PNG)](results/figures/signature_comparison.png)
+- [Benchmark methodology and earlier captured run](results/benchmark.md)
+- [Aggregate benchmark input](data/signature_benchmark.csv)
+- [Per-metric statistics](results/tables/signature_benchmark_statistics.csv)
+- [Captured logs and environment details](results/logs/)
 
-These are preliminary measurements from one captured run; see the report for limitations.
+The PNG and CSV comparison files are generated locally and are explicitly tracked in Git despite the general ignore rules for generated PNG/CSV files.
 
 ## Additional captured results
 
-- Grover circuit simulation report: [`results/grover_simulation.md`](results/grover_simulation.md)
-- Grover raw data: [`data/grover_circuit_results.csv`](data/grover_circuit_results.csv)
-- Grover probability chart: [`results/figures/grover_success_probability.svg`](results/figures/grover_success_probability.svg)
+- [Grover circuit simulation report](results/grover_simulation.md)
+- [Grover raw data](data/grover_circuit_results.csv)
+- [Grover probability chart](results/figures/grover_success_probability.svg)
 
-The latest batch-run signature benchmark and its updated charts are also available above. The signature CSV reflects the most recent uploaded run, so its values differ from earlier captures.
+Results are experimental and environment-specific. The Grover experiment is a small classical simulation of a quantum circuit, not an attack on real cryptographic systems.
