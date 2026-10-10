@@ -118,8 +118,10 @@ def run_sweep(
     # batched job. Aer executes a list of circuits in one job submission,
     # which removes the per-run overhead of repeatedly starting and tearing
     # down simulator state (and lets the backend reuse its compiled shared
-    # libraries). Results are identical to running the circuits one by one,
-    # because each circuit keeps its own deterministic seed.
+    # libraries). Note: Aer's ``seed_simulator`` option is a single integer
+    # (validated by qiskit-aer; passing a list raises TypeError), so all
+    # experiments in the batch share one base seed. The batch is still fully
+    # reproducible: re-running with the same seed yields identical counts.
     compiled_circuits = [
         transpile(
             build_grover_circuit(qubits, target, iterations),
@@ -131,12 +133,14 @@ def run_sweep(
     job = simulator.run(
         compiled_circuits,
         shots=shots,
-        seed_simulator=[seed + i for i in range(len(compiled_circuits))],
+        seed_simulator=seed,
     )
     results = job.result()
 
-    for iterations, iteration_result in zip(range(max_iterations + 1), results):
-        counts = iteration_result.get_counts()
+    # ``qiskit.result.Result`` is not iterable; fetch each experiment's
+    # counts by positional index instead.
+    for iterations in range(max_iterations + 1):
+        counts = results.get_counts(iterations)
         target_count = int(counts.get(target, 0))
         rows.append({
             "qubits": qubits,

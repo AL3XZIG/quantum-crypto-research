@@ -178,6 +178,22 @@ python -m experiments.signatures.run_benchmark --repetitions 100
 python -m experiments.signatures.analyze_results
 ```
 
+### Только модель накладных расходов подписей
+
+```powershell
+python -m experiments.transaction.signature_overhead
+```
+
+Модель берёт фактические размеры подписей из `data/signature_benchmark.csv`, если бенчмарк уже запускался, и иначе использует справочные значения (ECDSA P-256 ≈ 72 байта, ML-DSA-65 = 3309 байт по FIPS 204). Результат сохраняется в `data/signature_overhead_results.csv`. Параметр `--counts` задаёт список чисел подписей на транзакцию (по умолчанию 1..1000).
+
+### Автоматические тесты
+
+```powershell
+python -m pytest tests
+```
+
+Тесты для симуляции Гровера с реальным запуском Qiskit Aer автоматически пропускаются, если `qiskit`/`qiskit-aer` не установлены.
+
 ## Методика бенчмарка
 
 Для каждой операции выполняется серия измерений. Перед серией используются несколько прогревочных запусков, которые не входят в итоговую статистику. В CSV сохраняется среднее время выполнения.
