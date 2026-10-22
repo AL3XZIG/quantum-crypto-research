@@ -28,6 +28,8 @@ DEFAULT_FIGURE = ROOT / "results" / "figures" / "bitcoin_pqc_size_comparison.png
 DEFAULT_TABLE = ROOT / "results" / "tables" / "bitcoin_pqc_size_summary.csv"
 ML_DSA_65_SIGNATURE_BYTES = 3309
 SIGHASH_TYPES = {1, 2, 3, 0x81, 0x82, 0x83}
+_REQUEST_MIN_INTERVAL_SECONDS = 0.0
+_LAST_REQUEST_STARTED = 0.0
 
 
 class TransactionFormatError(ValueError):
@@ -265,9 +267,16 @@ class Transaction:
 
 
 def request_bytes(url: str, retries: int = 6) -> bytes:
-    """Fetch bytes with exponential backoff and support for Retry-After."""
+    """Fetch bytes with global request pacing, exponential backoff and Retry-After."""
+    global _LAST_REQUEST_STARTED
     req = urllib.request.Request(url, headers={"User-Agent": "quantum-crypto-research/1.0"})
     for attempt in range(retries + 1):
+        # Pace every API request, including tip, block metadata, txid lists and raw txs.
+        elapsed = time.monotonic() - _LAST_REQUEST_STARTED
+        wait_for_slot = _REQUEST_MIN_INTERVAL_SECONDS - elapsed
+        if wait_for_slot > 0:
+            time.sleep(wait_for_slot)
+        _LAST_REQUEST_STARTED = time.monotonic()
         try:
             with urllib.request.urlopen(req, timeout=25) as response:
                 return response.read()
@@ -312,8 +321,6 @@ def fetch_recent_txids(api: str, count: int, delay: float) -> tuple[list[str], i
         page = get_json(f"{api}/block/{block_hash}/txids")
         if isinstance(page, list) and page:
             ids.extend(str(txid) for txid in page[:count - len(ids)])
-            if delay:
-                time.sleep(delay)
         height -= 1
     if not ids:
         raise RuntimeError("Esplora returned no transaction IDs")
@@ -449,10 +456,22 @@ def main() -> int:
     parser.add_argument("--figure", type=Path, default=DEFAULT_FIGURE)
     parser.add_argument("--table", type=Path, default=DEFAULT_TABLE)
     args = parser.parse_args()
+    global _REQUEST_MIN_INTERVAL_SECONDS
+    _REQUEST_MIN_INTERVAL_SECONDS = args.delay
     if args.count < 1 or args.signature_bytes < 1 or args.delay < 0:
         parser.error("--count and --signature-bytes must be positive; --delay must be non-negative")
 
-    txids, tip = fetch_recent_txids(args.api, args.count, args.delay)
+    try:
+        txids, tip = fetch_recent_txids(args.api, args.count, args.delay)
+    except RuntimeError as exc:
+        # If the public API keeps rate-limiting discovery, make one conservative
+        # fallback attempt with a smaller sample after a cooldown.
+        if "HTTP 429" not in str(exc) or args.count <= 400:
+            raise
+        print(f"[WARN] Rate limit while collecting transaction IDs; reducing sample {args.count} -> 400 and waiting 60 seconds.")
+        time.sleep(60)
+        args.count = 400
+        txids, tip = fetch_recent_txids(args.api, args.count, args.delay)
     rows = []
     api = args.api.rstrip("/")
     for i, txid in enumerate(txids, 1):
@@ -461,8 +480,6 @@ def main() -> int:
             rows.append(analyze_transaction(txid, raw_hex, args.signature_bytes))
         except (RuntimeError, ValueError) as exc:
             print(f"[WARN] Skipping {txid}: {exc}")
-        if args.delay:
-            time.sleep(args.delay)
         if i % 25 == 0 or i == len(txids):
             print(f"Processed {i}/{len(txids)} IDs; analyzed {len(rows)}")
     if not rows:
