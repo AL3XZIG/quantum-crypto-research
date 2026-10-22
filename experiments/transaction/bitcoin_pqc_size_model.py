@@ -23,7 +23,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_API = "https://blockstream.info/api"
 DEFAULT_CSV = ROOT / "data" / "bitcoin_pqc_size_model.csv"
 DEFAULT_SUMMARY = ROOT / "data" / "bitcoin_pqc_size_summary.json"
-DEFAULT_FIGURE = ROOT / "results" / "figures" / "bitcoin_pqc_size_model.png"
+DEFAULT_FIGURE = ROOT / "results" / "figures" / "bitcoin_pqc_size_comparison.png"
+DEFAULT_TABLE = ROOT / "results" / "tables" / "bitcoin_pqc_size_summary.csv"
 ML_DSA_65_SIGNATURE_BYTES = 3309
 SIGHASH_TYPES = {1, 2, 3, 0x81, 0x82, 0x83}
 
@@ -349,9 +350,13 @@ def make_summary(rows: list[dict], tip: int, requested: int, api: str, sig_size:
         "transactions_without_recognized_ecdsa_signatures": len(rows) - len(changed),
         "replacement_signature_bytes": sig_size,
         "mean_original_total_size_bytes": mean(r["original_total_size_bytes"] for r in rows),
+        "median_original_total_size_bytes": median(r["original_total_size_bytes"] for r in rows),
         "mean_modeled_total_size_bytes": mean(r["modeled_total_size_bytes"] for r in rows),
+        "median_modeled_total_size_bytes": median(r["modeled_total_size_bytes"] for r in rows),
         "mean_original_vsize_bytes": mean(r["original_vsize_bytes"] for r in rows),
+        "median_original_vsize_bytes": median(r["original_vsize_bytes"] for r in rows),
         "mean_modeled_vsize_bytes": mean(r["modeled_vsize_bytes"] for r in rows),
+        "median_modeled_vsize_bytes": median(r["modeled_vsize_bytes"] for r in rows),
         "mean_total_size_increase_percent_among_changed": mean(total_pct) if total_pct else None,
         "median_total_size_increase_percent_among_changed": median(total_pct) if total_pct else None,
         "mean_vsize_increase_percent_among_changed": mean(vsize_pct) if vsize_pct else None,
@@ -364,6 +369,35 @@ def make_summary(rows: list[dict], tip: int, requested: int, api: str, sig_size:
             "Results describe only the sampled recent blocks, not the entire network or a future protocol upgrade."
         ]
     }
+
+
+def save_summary_table(summary: dict, path: Path) -> None:
+    """Write a compact comparison table in the same results/tables layout as other experiments."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    metrics = [
+        ("Количество транзакций", summary["analyzed_transactions"], summary["analyzed_transactions"], 0, 0.0),
+        ("Средний полный размер, байт", summary["mean_original_total_size_bytes"], summary["mean_modeled_total_size_bytes"],
+         summary["mean_modeled_total_size_bytes"] - summary["mean_original_total_size_bytes"],
+         100 * (summary["mean_modeled_total_size_bytes"] - summary["mean_original_total_size_bytes"]) / summary["mean_original_total_size_bytes"]),
+        ("Медианный полный размер, байт", summary["median_original_total_size_bytes"], summary["median_modeled_total_size_bytes"],
+         summary["median_modeled_total_size_bytes"] - summary["median_original_total_size_bytes"],
+         100 * (summary["median_modeled_total_size_bytes"] - summary["median_original_total_size_bytes"]) / summary["median_original_total_size_bytes"]),
+        ("Средний виртуальный размер (vsize), байт", summary["mean_original_vsize_bytes"], summary["mean_modeled_vsize_bytes"],
+         summary["mean_modeled_vsize_bytes"] - summary["mean_original_vsize_bytes"],
+         100 * (summary["mean_modeled_vsize_bytes"] - summary["mean_original_vsize_bytes"]) / summary["mean_original_vsize_bytes"]),
+        ("Медианный виртуальный размер (vsize), байт", summary["median_original_vsize_bytes"], summary["median_modeled_vsize_bytes"],
+         summary["median_modeled_vsize_bytes"] - summary["median_original_vsize_bytes"],
+         100 * (summary["median_modeled_vsize_bytes"] - summary["median_original_vsize_bytes"]) / summary["median_original_vsize_bytes"]),
+        ("Транзакции с распознанными ECDSA-подписями", summary["transactions_with_recognized_ecdsa_signatures"],
+         summary["transactions_with_recognized_ecdsa_signatures"], 0, 0.0),
+    ]
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Показатель", "Исходные транзакции", "Модель с ML-DSA-65", "Изменение", "Изменение, %"])
+        for label, original, modeled, delta, pct in metrics:
+            writer.writerow([label, round(original, 3) if isinstance(original, float) else original,
+                             round(modeled, 3) if isinstance(modeled, float) else modeled,
+                             round(delta, 3) if isinstance(delta, float) else delta, round(pct, 3)])
 
 
 def save_plot(rows: list[dict], path: Path) -> bool:
@@ -400,6 +434,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_CSV)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
     parser.add_argument("--figure", type=Path, default=DEFAULT_FIGURE)
+    parser.add_argument("--table", type=Path, default=DEFAULT_TABLE)
     args = parser.parse_args()
     if args.count < 1 or args.signature_bytes < 1 or args.delay < 0:
         parser.error("--count and --signature-bytes must be positive; --delay must be non-negative")
@@ -425,7 +460,8 @@ def main() -> int:
     args.summary.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     plotted = save_plot(rows, args.figure)
     print(f"CSV: {args.output}")
-    print(f"Summary: {args.summary}")
+    print(f"Summary JSON: {args.summary}")
+    print(f"Comparison table: {args.table}")
     print(f"Mean total size: {summary['mean_original_total_size_bytes']:.1f} -> {summary['mean_modeled_total_size_bytes']:.1f} bytes")
     print(f"Transactions with recognized ECDSA signatures: {summary['transactions_with_recognized_ecdsa_signatures']}/{len(rows)}")
     if plotted:
