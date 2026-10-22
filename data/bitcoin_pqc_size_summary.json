@@ -1,0 +1,29 @@
+{
+  "model": "counterfactual size model; not a Bitcoin protocol implementation",
+  "api": "https://blockstream.info/api",
+  "tip_height_at_collection": 972626,
+  "requested_transactions": 500,
+  "analyzed_transactions": 500,
+  "transactions_with_recognized_ecdsa_signatures": 471,
+  "transactions_without_recognized_ecdsa_signatures": 29,
+  "replacement_signature_bytes": 3309,
+  "mean_original_total_size_bytes": 405.17,
+  "median_original_total_size_bytes": 225.0,
+  "mean_modeled_total_size_bytes": 5718.478,
+  "median_modeled_total_size_bytes": 3464.0,
+  "mean_original_vsize_bytes": 280.95,
+  "median_original_vsize_bytes": 172.0,
+  "mean_modeled_vsize_bytes": 2119.772,
+  "median_modeled_vsize_bytes": 982.0,
+  "mean_total_size_increase_percent_among_changed": 1484.3952508723212,
+  "median_total_size_increase_percent_among_changed": 1459.4594594594594,
+  "mean_vsize_increase_percent_among_changed": 779.4939191885511,
+  "median_vsize_increase_percent_among_changed": 716.8141592920354,
+  "limitations": [
+    "Only strict-DER ECDSA-shaped stack items are replaced; this is structural recognition, not script execution.",
+    "Schnorr signatures (including Taproot) are not classified as ECDSA and are left unchanged.",
+    "The model does not define new Bitcoin consensus rules, sighash semantics, or a valid ML-DSA transaction format.",
+    "Transactions without recognized ECDSA items are unchanged and included in overall means.",
+    "Results describe only the sampled recent blocks, not the entire network or a future protocol upgrade."
+  ]
+}
