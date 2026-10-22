@@ -458,6 +458,7 @@ def main() -> int:
     summary = make_summary(rows, tip, args.count, api, args.signature_bytes)
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    save_summary_table(summary, args.table)
     plotted = save_plot(rows, args.figure)
     print(f"CSV: {args.output}")
     print(f"Summary JSON: {args.summary}")
