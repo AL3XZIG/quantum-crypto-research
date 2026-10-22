@@ -1,4 +1,7 @@
+import io
 import unittest
+import urllib.error
+from email.message import Message
 
 from unittest.mock import patch
 
@@ -8,6 +11,7 @@ from experiments.transaction.bitcoin_pqc_size_model import (
     fetch_recent_txids,
     is_der_ecdsa_signature_item,
     push_data,
+    request_bytes,
     varint,
 )
 
@@ -95,6 +99,25 @@ class BitcoinPqcSizeModelTests(unittest.TestCase):
 
         self.assertEqual(txids, ["txid-1"])
         self.assertEqual(tip, 100)
+
+
+    def test_request_bytes_retries_http_429_and_honors_retry_after(self):
+        headers = Message()
+        headers["Retry-After"] = "0"
+        rate_limited = urllib.error.HTTPError(
+            "https://example.test/tx/hex", 429, "Too Many Requests", headers, None
+        )
+        with patch(
+            "experiments.transaction.bitcoin_pqc_size_model.urllib.request.urlopen",
+            side_effect=[rate_limited, io.BytesIO(b"ok")],
+        ) as urlopen, patch(
+            "experiments.transaction.bitcoin_pqc_size_model.time.sleep"
+        ) as sleep:
+            self.assertEqual(request_bytes("https://example.test/tx/hex"), b"ok")
+
+        self.assertEqual(urlopen.call_count, 2)
+        # Backoff is at least one second even if Retry-After is zero.
+        sleep.assert_called_once_with(1)
 
 
 if __name__ == "__main__":
