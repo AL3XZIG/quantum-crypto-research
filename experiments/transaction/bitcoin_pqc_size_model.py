@@ -291,14 +291,11 @@ def fetch_recent_txids(api: str, count: int, delay: float) -> tuple[list[str], i
     while height >= 0 and len(ids) < count:
         block_hash = request_bytes(f"{api}/block-height/{height}").decode("ascii").strip()
         block = get_json(f"{api}/block/{block_hash}")
-        for start in range(0, int(block["tx_count"]), 25):
-            # Esplora pagination uses /txids/:start_index (not a query parameter).
-            page = get_json(f"{api}/block/{block_hash}/txids/{start}")
-            if not isinstance(page, list) or not page:
-                break
-            ids.extend(str(txid) for txid in page)
-            if len(ids) >= count:
-                break
+        # Esplora exposes all transaction IDs at /block/:hash/txids;
+        # unlike /block/:hash/txs/:start_index, this endpoint has no paging suffix.
+        page = get_json(f"{api}/block/{block_hash}/txids")
+        if isinstance(page, list) and page:
+            ids.extend(str(txid) for txid in page[:count - len(ids)])
             if delay:
                 time.sleep(delay)
         height -= 1

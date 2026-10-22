@@ -1,8 +1,11 @@
 import unittest
 
+from unittest.mock import patch
+
 from experiments.transaction.bitcoin_pqc_size_model import (
     Transaction,
     analyze_transaction,
+    fetch_recent_txids,
     is_der_ecdsa_signature_item,
     push_data,
     varint,
@@ -70,6 +73,28 @@ class BitcoinPqcSizeModelTests(unittest.TestCase):
         self.assertEqual(row["recognized_ecdsa_signatures"], 1)
         self.assertGreater(row["delta_total_size_bytes"], 0)
         self.assertGreater(row["delta_vsize_bytes"], 0)
+
+    def test_fetch_recent_txids_uses_supported_esplora_endpoint(self):
+        def fake_request_bytes(url):
+            if url.endswith("/blocks/tip/height"):
+                return b"100"
+            if url.endswith("/block-height/100"):
+                return b"blockhash"
+            raise AssertionError(f"Unexpected endpoint: {url}")
+
+        def fake_get_json(url):
+            if url.endswith("/block/blockhash"):
+                return {"tx_count": 2}
+            if url.endswith("/block/blockhash/txids"):
+                return ["txid-1", "txid-2"]
+            raise AssertionError(f"Unexpected endpoint: {url}")
+
+        with patch("experiments.transaction.bitcoin_pqc_size_model.request_bytes", side_effect=fake_request_bytes), \
+             patch("experiments.transaction.bitcoin_pqc_size_model.get_json", side_effect=fake_get_json):
+            txids, tip = fetch_recent_txids("https://example.test/api", 1, 0)
+
+        self.assertEqual(txids, ["txid-1"])
+        self.assertEqual(tip, 100)
 
 
 if __name__ == "__main__":
