@@ -205,7 +205,7 @@ python -m experiments.transaction.bitcoin_pqc_size_model --count 100
 python -m experiments.transaction.bitcoin_pqc_size_model --count 1000
 ```
 
-Результаты по каждой транзакции сохраняются в `data/bitcoin_pqc_size_model.csv`, сводка — в `data/bitcoin_pqc_size_summary.json`. Если установлен `matplotlib`, также создаётся `results/figures/bitcoin_pqc_size_model.png`. Можно задать задержку между API-запросами параметром `--delay 0.2`.
+Результаты по каждой транзакции сохраняются в `data/bitcoin_pqc_size_model.csv`, сводка JSON — в `data/bitcoin_pqc_size_summary.json`, сравнительная таблица в стиле других экспериментов — в `results/tables/bitcoin_pqc_size_summary.csv`, а единый график сравнения — в `results/figures/bitcoin_pqc_size_comparison.png`. Можно задать задержку между API-запросами параметром `--delay 0.2`.
 
 **Ограничения модели:** это не внедрение ML-DSA в Bitcoin и не генерация действительных постквантовых транзакций. Скрипт распознаёт ECDSA-подписи по строгой DER-структуре и байту sighash в script push/witness items, оставляя подписи Шнорра (включая Taproot) без изменений. Это структурная оценка размера, а не полная проверка скриптов и не спецификация изменения консенсуса Bitcoin. Результаты относятся к выбранной выборке недавних блоков. Для построения графика требуется необязательная зависимость `matplotlib`.
 
