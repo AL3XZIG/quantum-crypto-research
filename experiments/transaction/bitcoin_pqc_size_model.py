@@ -15,6 +15,7 @@ import math
 import time
 import urllib.error
 import urllib.request
+from email.utils import parsedate_to_datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 from statistics import mean, median
@@ -263,7 +264,8 @@ class Transaction:
                 "weight_units": weight, "vsize_bytes": math.ceil(weight / 4)}
 
 
-def request_bytes(url: str, retries: int = 4) -> bytes:
+def request_bytes(url: str, retries: int = 6) -> bytes:
+    """Fetch bytes with exponential backoff and support for Retry-After."""
     req = urllib.request.Request(url, headers={"User-Agent": "quantum-crypto-research/1.0"})
     for attempt in range(retries + 1):
         try:
@@ -272,10 +274,24 @@ def request_bytes(url: str, retries: int = 4) -> bytes:
         except urllib.error.HTTPError as exc:
             if exc.code not in {429, 500, 502, 503, 504} or attempt == retries:
                 raise RuntimeError(f"HTTP {exc.code} for {url}") from exc
+
+            # Exponential backoff: 1, 2, 4, 8, 16, 32 seconds (capped at 60).
+            wait_seconds = min(2 ** attempt, 60)
+            retry_after = exc.headers.get("Retry-After") if exc.headers else None
+            if retry_after:
+                try:
+                    wait_seconds = max(wait_seconds, float(retry_after))
+                except ValueError:
+                    try:
+                        retry_time = parsedate_to_datetime(retry_after).timestamp()
+                        wait_seconds = max(wait_seconds, retry_time - time.time())
+                    except (TypeError, ValueError, OverflowError):
+                        pass
+            time.sleep(max(0, wait_seconds))
         except (urllib.error.URLError, TimeoutError) as exc:
             if attempt == retries:
                 raise RuntimeError(f"Request failed for {url}: {exc}") from exc
-        time.sleep(min(2 ** attempt, 10))
+            time.sleep(min(2 ** attempt, 60))
     raise RuntimeError(f"Request failed for {url}")
 
 
@@ -426,7 +442,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--count", type=int, default=100, help="Recent confirmed transactions to sample (default: 100)")
     parser.add_argument("--api", default=DEFAULT_API, help="Esplora API base URL")
-    parser.add_argument("--delay", type=float, default=0.15, help="Delay between API calls (seconds)")
+    parser.add_argument("--delay", type=float, default=0.5, help="Delay between API calls (seconds; conservative default for public API)")
     parser.add_argument("--signature-bytes", type=int, default=ML_DSA_65_SIGNATURE_BYTES)
     parser.add_argument("--output", type=Path, default=DEFAULT_CSV)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
