@@ -95,8 +95,8 @@ python -m pip install -r requirements-quantum.txt
 Откройте PowerShell или CMD и выполните:
 
 ```powershell
-git clone https://github.com/AL3XZIG/quantum-crypto-research-.git
-cd quantum-crypto-research-
+git clone https://github.com/AL3XZIG/quantum-crypto-research.git
+cd quantum-crypto-research
 ```
 
 ### 3. Создать виртуальное окружение
@@ -188,6 +188,26 @@ python -m experiments.transaction.signature_overhead
 ```
 
 Модель берёт фактические размеры подписей из `data/signature_benchmark.csv`, если бенчмарк уже запускался, и иначе использует справочные значения (ECDSA P-256 ≈ 72 байта, ML-DSA-65 = 3309 байт по FIPS 204). Результат сохраняется в `data/signature_overhead_results.csv`. Параметр `--counts` задаёт список чисел подписей на транзакцию (по умолчанию 1..1000).
+
+### Модель размера реальных транзакций Bitcoin
+
+Новый эксперимент `experiments/transaction/bitcoin_pqc_size_model.py` получает подтверждённые транзакции из Blockstream Esplora, разбирает их сырую сериализацию и строит контрфактическую модель замены распознанных ECDSA-подписей подписью ML-DSA-65 размером 3309 байт по [NIST FIPS 204](https://doi.org/10.6028/NIST.FIPS.204).
+
+Быстрый запуск на 100 последних транзакциях:
+
+```powershell
+python -m experiments.transaction.bitcoin_pqc_size_model --count 100
+```
+
+Для более крупной выборки:
+
+```powershell
+python -m experiments.transaction.bitcoin_pqc_size_model --count 1000
+```
+
+Результаты по каждой транзакции сохраняются в `data/bitcoin_pqc_size_model.csv`, сводка JSON — в `data/bitcoin_pqc_size_summary.json`, сравнительная таблица в стиле других экспериментов — в `results/tables/bitcoin_pqc_size_summary.csv`, а единый график сравнения — в `results/figures/bitcoin_pqc_size_comparison.png`. Можно задать задержку между API-запросами параметром `--delay 0.2`.
+
+**Ограничения модели:** это не внедрение ML-DSA в Bitcoin и не генерация действительных постквантовых транзакций. Скрипт распознаёт ECDSA-подписи по строгой DER-структуре и байту sighash в script push/witness items, оставляя подписи Шнорра (включая Taproot) без изменений. Это структурная оценка размера, а не полная проверка скриптов и не спецификация изменения консенсуса Bitcoin. Результаты относятся к выбранной выборке недавних блоков. Для построения графика требуется необязательная зависимость `matplotlib`.
 
 ### Автоматические тесты
 
