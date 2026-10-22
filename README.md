@@ -95,8 +95,8 @@ python -m pip install -r requirements-quantum.txt
 Откройте PowerShell или CMD и выполните:
 
 ```powershell
-git clone https://github.com/AL3XZIG/quantum-crypto-research-.git
-cd quantum-crypto-research-
+git clone https://github.com/AL3XZIG/quantum-crypto-research.git
+cd quantum-crypto-research
 ```
 
 ### 3. Создать виртуальное окружение
