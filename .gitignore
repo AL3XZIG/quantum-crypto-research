@@ -7,3 +7,7 @@ venv/
 data/*.csv
 results/figures/*.png
 results/tables/*.csv
+
+# Keep the reproducible Bitcoin experiment's final table and graph under version control.
+!results/figures/bitcoin_pqc_size_comparison.png
+!results/tables/bitcoin_pqc_size_summary.csv
