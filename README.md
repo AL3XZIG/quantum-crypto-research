@@ -191,6 +191,16 @@ python -m experiments.transaction.signature_overhead
 
 ### Модель размера реальных транзакций Bitcoin
 
+**Подробная инструкция по запуску:** [experiments/transaction/README.md](experiments/transaction/README.md) — установка зависимостей для Windows/Linux, тесты, параметры CLI, выходные файлы и ограничения методики.
+
+Для быстрого старта из корня репозитория установите необязательные зависимости для графика и тестов, затем выполните команды:
+
+~~~powershell
+python -m pip install matplotlib pytest
+python -m pytest -q tests/test_bitcoin_pqc_size_model.py
+python -m experiments.transaction.bitcoin_pqc_size_model --count 100
+~~~
+
 Новый эксперимент `experiments/transaction/bitcoin_pqc_size_model.py` получает подтверждённые транзакции из Blockstream Esplora, разбирает их сырую сериализацию и строит контрфактическую модель замены распознанных ECDSA-подписей подписью ML-DSA-65 размером 3309 байт по [NIST FIPS 204](https://doi.org/10.6028/NIST.FIPS.204).
 
 Быстрый запуск на 100 последних транзакциях:
