@@ -8,9 +8,9 @@ implementation and not a prediction of future fee-market prices.
 """
 from __future__ import annotations
 
-import io
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -80,11 +80,13 @@ with st.sidebar:
 
 def get_rows():
     if uploaded is not None:
-        raw = uploaded.getvalue()
-        temp_path = ROOT / "data" / ".uploaded_bitcoin_pqc_input.csv"
-        temp_path.parent.mkdir(parents=True, exist_ok=True)
-        temp_path.write_bytes(raw)
-        return load_rows(temp_path), temp_path
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as temp_file:
+            temp_file.write(uploaded.getvalue())
+            temp_path = Path(temp_file.name)
+        try:
+            return load_rows(temp_path), Path(uploaded.name)
+        finally:
+            temp_path.unlink(missing_ok=True)
     path = Path(input_path).expanduser()
     if not path.is_absolute():
         path = ROOT / path
