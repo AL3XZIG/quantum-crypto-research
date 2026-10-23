@@ -137,9 +137,9 @@ def storage_scenarios(
     for tx_day in tx_per_day_values:
         if tx_day <= 0:
             raise ValueError("Transactions per day must be positive")
-        for label, size, weight in (
-            ("original", mean_original_size, mean_original_weight),
-            ("modeled_ml_dsa_65", mean_modeled_size, mean_modeled_weight),
+        for label, size in (
+            ("original", mean_original_size),
+            ("modeled_ml_dsa_65", mean_modeled_size),
         ):
             annual_bytes = size * tx_day * 365
             output.append({
@@ -150,22 +150,21 @@ def storage_scenarios(
                 "projected_chain_data_gb_per_year": round(annual_bytes / 1_000_000_000, 3),
                 "note": "Same transaction count; ignores fixed block-weight capacity and is not a feasible forecast under the current limit.",
             })
-        for label, size, weight in (
-            ("original", mean_original_size, mean_original_weight),
-            ("modeled_ml_dsa_65", mean_modeled_size, mean_modeled_weight),
-        ):
-            tx_per_block = max(1, int(limit // weight))
-            annual_bytes = size * tx_per_block * BLOCKS_PER_DAY * 365
-            output.append({
-                "model": "fixed_block_weight_capacity_estimate",
-                "scenario": label,
-                "transactions_per_day": tx_per_block * BLOCKS_PER_DAY,
-                "mean_transaction_bytes": round(size, 3),
-                "projected_chain_data_gb_per_year": round(annual_bytes / 1_000_000_000, 3),
-                "note": "Approximation using mean sample weight/size and 144 full blocks per day; excludes block overhead and coinbase.",
-            })
+    for label, size, weight in (
+        ("original", mean_original_size, mean_original_weight),
+        ("modeled_ml_dsa_65", mean_modeled_size, mean_modeled_weight),
+    ):
+        tx_per_block = max(1, int(limit // weight))
+        annual_bytes = size * tx_per_block * BLOCKS_PER_DAY * 365
+        output.append({
+            "model": "fixed_block_weight_capacity_estimate",
+            "scenario": label,
+            "transactions_per_day": tx_per_block * BLOCKS_PER_DAY,
+            "mean_transaction_bytes": round(size, 3),
+            "projected_chain_data_gb_per_year": round(annual_bytes / 1_000_000_000, 3),
+            "note": "Approximation using mean sample weight/size and 144 full blocks per day; excludes block overhead and coinbase.",
+        })
     return output
-
 
 def write_csv(rows: list[dict], path: Path) -> None:
     if not rows:
