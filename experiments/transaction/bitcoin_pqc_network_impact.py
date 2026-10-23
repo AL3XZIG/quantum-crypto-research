@@ -244,7 +244,7 @@ def main() -> int:
     }
 
     args.summary.parent.mkdir(parents=True, exist_ok=True)
-    args.summary.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    args.summary.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     original_vsize = mean(r["original_vsize_bytes"] for r in rows)
     modeled_vsize = mean(r["modeled_vsize_bytes"] for r in rows)
@@ -317,9 +317,9 @@ def main() -> int:
         "",
     ]
     args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text("\\n".join(report_lines), encoding="utf-8")
+    args.report.write_text("\n".join(report_lines), encoding="utf-8")
 
-    print("\\n=== BITCOIN PQC NETWORK IMPACT: RESULTS ===")
+    print("\n=== BITCOIN PQC NETWORK IMPACT: RESULTS ===")
     print(f"Sample size: {len(rows)} transactions")
     print(f"Transactions with changed modeled vsize: {changed}/{len(rows)}")
     print(f"Mean vsize: {original_vsize:.2f} -> {modeled_vsize:.2f} vB ({tx_increase_pct:+.2f}%)")
@@ -327,7 +327,7 @@ def main() -> int:
     print(f"Fee example at {fee_example['fee_rate_sat_vB']} sat/vB: {fee_example['mean_fee_original_sat']:.2f} -> {fee_example['mean_fee_modeled_sat']:.2f} sat")
     print(f"Block capacity upper estimate: {low_share['estimated_transactions_per_full_block_upper_bound']} -> {high_share['estimated_transactions_per_full_block_upper_bound']} tx/block")
     print(f"Annual transaction payload at {high_share['modeled_transaction_share_percent']}% modeled share: {high_share['estimated_transaction_payload_per_year_gb']:.3f} GB")
-    print("\\n=== SAVED OUTPUTS ===")
+    print("\n=== SAVED OUTPUTS ===")
     print(f"Report: {args.report}")
     print(f"Fee table: {args.fees}")
     print(f"Block capacity table: {args.blocks}")
@@ -337,13 +337,8 @@ def main() -> int:
         print("Figures: " + ", ".join(figures))
     else:
         print("PNG figures skipped (install matplotlib to generate them).")
-    print("\\nNote: scenario analysis only; not a Bitcoin protocol implementation or fee-market forecast.")
+    print("\nNote: scenario analysis only; not a Bitcoin protocol implementation or fee-market forecast.")
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
-
 
 
 if __name__ == "__main__":
