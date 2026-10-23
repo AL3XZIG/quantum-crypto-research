@@ -137,3 +137,32 @@ python -m experiments.transaction.bitcoin_pqc_size_model --help
 - **Тесты не проходят:** сохраните полный вывод команды pytest и проверьте, что используете актуальную ветку main.
 
 Перед включением чисел в исследовательскую работу сначала запустите эксперимент и проверьте полученные CSV, JSON и PNG. Не используйте вымышленные или непроверенные результаты.
+
+
+## Дополнительный эксперимент: комиссии, вес блоков и нагрузка на узлы
+
+Это отдельный CLI-эксперимент. Он использует уже собранный `data/bitcoin_pqc_size_model.csv`, не требует веб-интерфейса и после запуска печатает сравнение и выводы в CMD/терминал.
+
+Из корня репозитория:
+
+~~~cmd
+.venv\\Scripts\\python.exe -m experiments.transaction.bitcoin_pqc_network_impact
+~~~
+
+Либо запустите `run_bitcoin_pqc_network_impact.bat`.
+
+Если CSV ещё нет, сначала соберите выборку транзакций:
+
+~~~cmd
+.venv\\Scripts\\python.exe -m experiments.transaction.bitcoin_pqc_size_model --count 500
+~~~
+
+Программа автоматически создаёт отчёт `results/bitcoin_pqc_network_impact_report.md`, таблицы CSV в `results/tables/`, JSON-сводку и три PNG-графика в `results/figures/`.
+
+Проверка расчётной модели:
+
+~~~cmd
+.venv\\Scripts\\python.exe -m pytest -q tests/test_bitcoin_pqc_network_impact.py
+~~~
+
+Все комиссии считаются при фиксированной ставке sat/vB. Оценка вместимости — верхняя граница по среднему весу выборки; оценка хранения предполагает постоянно полные блоки и не измеряет реальный объём диска или сетевой трафик узла.
