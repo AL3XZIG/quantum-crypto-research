@@ -200,6 +200,7 @@ def main() -> int:
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT, help="CSV from bitcoin_pqc_size_model.py")
     parser.add_argument("--fees", type=Path, default=DEFAULT_FEES)
     parser.add_argument("--blocks", type=Path, default=DEFAULT_BLOCKS)
+    parser.add_argument("--storage", type=Path, default=DEFAULT_STORAGE)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
     parser.add_argument("--fee-figure", type=Path, default=DEFAULT_FEE_PLOT)
     parser.add_argument("--block-figure", type=Path, default=DEFAULT_BLOCK_PLOT)
@@ -213,6 +214,9 @@ def main() -> int:
     blocks = block_capacity_scenarios(rows, args.block_weight_limit, blocks_per_day=args.blocks_per_day)
     save_csv(fees, args.fees)
     save_csv(blocks, args.blocks)
+    storage_columns = ("modeled_transaction_share_percent", "estimated_transaction_payload_per_full_block_mb", "assumed_full_blocks_per_day", "estimated_transaction_payload_per_day_gb", "estimated_transaction_payload_per_year_gb", "estimated_transaction_payload_per_year_tib")
+    storage = [{key: row[key] for key in storage_columns} for row in blocks]
+    save_csv(storage, args.storage)
     figures = save_plots(fees, blocks, (args.fee_figure, args.block_figure, args.storage_figure))
     summary = {
         "model": "counterfactual scenario; not a Bitcoin protocol implementation",
@@ -225,6 +229,7 @@ def main() -> int:
         "assumed_full_blocks_per_day": args.blocks_per_day,
         "fee_table": str(args.fees),
         "block_capacity_table": str(args.blocks),
+        "node_storage_table": str(args.storage),
         "figures_written": figures,
         "limitations": [
             "Fee rates are fixed hypothetical sat/vB values; this does not predict fee-market equilibrium.",
@@ -239,7 +244,8 @@ def main() -> int:
     args.summary.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Transactions analyzed: {len(rows)}")
     print(f"Fee table: {args.fees}")
-    print(f"Block/storage table: {args.blocks}")
+    print(f"Block capacity table: {args.blocks}")
+    print(f"Node storage table: {args.storage}")
     print(f"Summary: {args.summary}")
     if figures:
         print("Figures: " + ", ".join(figures))
