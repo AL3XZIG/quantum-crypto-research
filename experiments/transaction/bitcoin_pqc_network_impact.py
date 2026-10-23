@@ -22,6 +22,7 @@ DEFAULT_SUMMARY = ROOT / "data" / "bitcoin_pqc_network_impact_summary.json"
 DEFAULT_FEE_PLOT = ROOT / "results" / "figures" / "bitcoin_pqc_fee_scenarios.png"
 DEFAULT_BLOCK_PLOT = ROOT / "results" / "figures" / "bitcoin_pqc_block_capacity.png"
 DEFAULT_STORAGE_PLOT = ROOT / "results" / "figures" / "bitcoin_pqc_node_storage.png"
+DEFAULT_REPORT = ROOT / "results" / "bitcoin_pqc_network_impact_report.md"
 DEFAULT_FEE_RATES = (1, 5, 10, 25, 50, 100)
 DEFAULT_CONVERSION_SHARES = (0, 25, 50, 75, 100)
 DEFAULT_BLOCK_WEIGHT_LIMIT = 4_000_000
@@ -202,6 +203,7 @@ def main() -> int:
     parser.add_argument("--blocks", type=Path, default=DEFAULT_BLOCKS)
     parser.add_argument("--storage", type=Path, default=DEFAULT_STORAGE)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
+    parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--fee-figure", type=Path, default=DEFAULT_FEE_PLOT)
     parser.add_argument("--block-figure", type=Path, default=DEFAULT_BLOCK_PLOT)
     parser.add_argument("--storage-figure", type=Path, default=DEFAULT_STORAGE_PLOT)
@@ -240,9 +242,93 @@ def main() -> int:
             "A real ML-DSA migration would require protocol and consensus changes; this script does not create valid post-quantum Bitcoin transactions."
         ]
     }
+
     args.summary.parent.mkdir(parents=True, exist_ok=True)
-    args.summary.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Transactions analyzed: {len(rows)}")
+    args.summary.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+
+    original_vsize = mean(r["original_vsize_bytes"] for r in rows)
+    modeled_vsize = mean(r["modeled_vsize_bytes"] for r in rows)
+    original_weight = mean(r["original_weight_units"] for r in rows)
+    modeled_weight = mean(r["modeled_weight_units"] for r in rows)
+    changed = sum(r["modeled_vsize_bytes"] != r["original_vsize_bytes"] for r in rows)
+    tx_increase_pct = (modeled_vsize / original_vsize - 1) * 100 if original_vsize else 0
+    weight_increase_pct = (modeled_weight / original_weight - 1) * 100 if original_weight else 0
+    fee_example = fees[0]
+    low_share = min(blocks, key=lambda r: r["modeled_transaction_share_percent"])
+    high_share = max(blocks, key=lambda r: r["modeled_transaction_share_percent"])
+    capacity_drop_pct = (
+        (1 - high_share["estimated_transactions_per_full_block_upper_bound"] /
+         low_share["estimated_transactions_per_full_block_upper_bound"]) * 100
+        if low_share["estimated_transactions_per_full_block_upper_bound"] else 0
+    )
+    report_lines = [
+        "# Bitcoin PQC: влияние на комиссии, вес блоков и хранение узлов",
+        "",
+        "## Методика",
+        "",
+        f"- Источник данных: {args.input}.",
+        f"- Обработано транзакций: **{len(rows)}**.",
+        f"- Транзакций с распознанными ECDSA-подобными элементами: **{summary['transactions_with_recognized_ecdsa_signatures']}**.",
+        "- Размер замещающей подписи в модели: 3309 байт (ML-DSA-65).",
+        f"- Лимит веса блока: **{args.block_weight_limit:,} WU**; число блоков в сутки: **{args.blocks_per_day}**.",
+        "",
+        "## Основные результаты",
+        "",
+        "| Метрика | Исходная выборка | Контрфактическая модель |",
+        "|---|---:|---:|",
+        f"| Средний vsize транзакции | {original_vsize:.2f} vB | {modeled_vsize:.2f} vB |",
+        f"| Средний вес транзакции | {original_weight:.2f} WU | {modeled_weight:.2f} WU |",
+        f"| Транзакции с изменившимся vsize | — | {changed}/{len(rows)} |",
+        f"| Изменение среднего vsize | — | {tx_increase_pct:+.2f}% |",
+        f"| Изменение среднего веса | — | {weight_increase_pct:+.2f}% |",
+        "",
+        "## Комиссии при фиксированной ставке",
+        "",
+        f"При ставке **{fee_example['fee_rate_sat_vB']} sat/vB** средняя расчётная комиссия составляет **{fee_example['mean_fee_original_sat']:.2f} sat** до замены и **{fee_example['mean_fee_modeled_sat']:.2f} sat** в модели; разница — **{fee_example['mean_fee_delta_sat']:.2f} sat**.",
+        "",
+        "Это сравнение при одинаковой ставке sat/vB, а не прогноз рыночных комиссий.",
+        "",
+        "## Вместимость блока и хранение",
+        "",
+        f"- При доле перехода **{low_share['modeled_transaction_share_percent']}%** верхняя оценка вместимости — **{low_share['estimated_transactions_per_full_block_upper_bound']} транзакций на блок**.",
+        f"- При доле перехода **{high_share['modeled_transaction_share_percent']}%** верхняя оценка вместимости — **{high_share['estimated_transactions_per_full_block_upper_bound']} транзакций на блок**.",
+        f"- Изменение верхней оценки вместимости между этими сценариями: **{capacity_drop_pct:.2f}%**.",
+        f"- При доле **{high_share['modeled_transaction_share_percent']}%** объём данных транзакций оценивается в **{high_share['estimated_transaction_payload_per_day_gb']:.3f} GB/сутки** и **{high_share['estimated_transaction_payload_per_year_gb']:.3f} GB/год**.",
+        "",
+        "## Вывод",
+        "",
+        f"В выбранной выборке средний виртуальный размер транзакции изменился на **{tx_increase_pct:+.2f}%**, а средний вес — на **{weight_increase_pct:+.2f}%**. При фиксированной ставке sat/vB расчётная комиссия растёт вместе с vsize. При увеличении среднего веса в условно заполненный блок помещается меньше транзакций. При допущении постоянно полных блоков растёт и объём данных, который узлу требуется хранить.",
+        "",
+        "## Ограничения",
+        "",
+        "- Это сценарная модель, а не реализация ML-DSA в Bitcoin или изменение консенсуса.",
+        "- Исходная модель распознаёт элементы по DER-структуре и не исполняет Bitcoin Script; возможны пропуски и ложные распознавания.",
+        "- Комиссии рассчитаны при фиксированных ставках; модель не симулирует mempool и рыночное равновесие.",
+        "- Вместимость блока — верхняя оценка по среднему весу; не учитываются coinbase, заголовок, commitment-данные и реальная упаковка транзакций.",
+        "- Хранение рассчитано при полных блоках, заданном числе блоков в сутки, 365 днях в году и отсутствии pruning; это не замер фактического диска или сетевого трафика.",
+        "",
+        "## Выходные файлы",
+        "",
+        f"- Таблица комиссий: {args.fees}",
+        f"- Таблица вместимости: {args.blocks}",
+        f"- Таблица хранения: {args.storage}",
+        f"- JSON-сводка: {args.summary}",
+        "- PNG: bitcoin_pqc_fee_scenarios.png, bitcoin_pqc_block_capacity.png, bitcoin_pqc_node_storage.png",
+        "",
+    ]
+    args.report.parent.mkdir(parents=True, exist_ok=True)
+    args.report.write_text("\\n".join(report_lines), encoding="utf-8")
+
+    print("\\n=== BITCOIN PQC NETWORK IMPACT: RESULTS ===")
+    print(f"Sample size: {len(rows)} transactions")
+    print(f"Transactions with changed modeled vsize: {changed}/{len(rows)}")
+    print(f"Mean vsize: {original_vsize:.2f} -> {modeled_vsize:.2f} vB ({tx_increase_pct:+.2f}%)")
+    print(f"Mean weight: {original_weight:.2f} -> {modeled_weight:.2f} WU ({weight_increase_pct:+.2f}%)")
+    print(f"Fee example at {fee_example['fee_rate_sat_vB']} sat/vB: {fee_example['mean_fee_original_sat']:.2f} -> {fee_example['mean_fee_modeled_sat']:.2f} sat")
+    print(f"Block capacity upper estimate: {low_share['estimated_transactions_per_full_block_upper_bound']} -> {high_share['estimated_transactions_per_full_block_upper_bound']} tx/block")
+    print(f"Annual transaction payload at {high_share['modeled_transaction_share_percent']}% modeled share: {high_share['estimated_transaction_payload_per_year_gb']:.3f} GB")
+    print("\\n=== SAVED OUTPUTS ===")
+    print(f"Report: {args.report}")
     print(f"Fee table: {args.fees}")
     print(f"Block capacity table: {args.blocks}")
     print(f"Node storage table: {args.storage}")
@@ -251,7 +337,13 @@ def main() -> int:
         print("Figures: " + ", ".join(figures))
     else:
         print("PNG figures skipped (install matplotlib to generate them).")
+    print("\\nNote: scenario analysis only; not a Bitcoin protocol implementation or fee-market forecast.")
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
 
 
 if __name__ == "__main__":
